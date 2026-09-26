@@ -334,8 +334,8 @@ npm run build
 
 ## AI Usage Note
 
-AI tools including GitHub Copilot and ChatGPT were used for development assistance, debugging, architecture discussion, implementation support, testing guidance, and documentation.
+AI tools including GitHub Copilot and ChatGPT were used for development assistance,architecture discussion and support. Implementation was reviewed and tested by me.
 
 ## Time Spent
 
-Actual development time: ____________________
+Actual development time: 7.5 hours
