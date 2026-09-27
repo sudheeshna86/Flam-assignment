@@ -9,15 +9,13 @@ export async function generateStudySet(input, mode = "flashcards") {
   try {
     const response = await API.post("/generate", {
       input,
-        mode,
+      mode,
     });
 
     const result = response.data;
 
     if (!result.success) {
-      throw new Error(
-        result.error || "Failed to generate study material."
-      );
+      throw new Error(result.error || "Failed to generate study material.");
     }
 
     if (!result.data) {
@@ -25,28 +23,27 @@ export async function generateStudySet(input, mode = "flashcards") {
     }
 
     return result.data;
-  } 
-  
-  catch (error) {
+  } catch (error) {
     if (error.response) {
       throw new Error(
         error.response.data?.error ||
-        "Server failed to generate study material.",
-        { cause: error }
+          "Server failed to generate study material.",
+        { cause: error },
       );
     }
 
     if (error.code === "ECONNABORTED") {
-      throw new Error(
-        "The request took too long. Please try again.",
-        { cause: error }
-      );
+      throw new Error("The request took too long. Please try again.", {
+        cause: error,
+      });
     }
 
     if (error.message) {
       throw new Error(error.message, { cause: error });
     }
 
-    throw new Error("Something went wrong. Please try again.", { cause: error });
+    throw new Error("Something went wrong. Please try again.", {
+      cause: error,
+    });
   }
 }

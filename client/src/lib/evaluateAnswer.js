@@ -1,8 +1,36 @@
 const STOP_WORDS = new Set([
-  "a", "an", "and", "are", "as", "at", "be", "by", "can", "does",
-  "for", "from", "gives", "give", "has", "have", "how", "in", "is",
-  "it", "of", "on", "or", "that", "the", "their", "this", "to", "what",
-  "when", "which", "with",
+  "a",
+  "an",
+  "and",
+  "are",
+  "as",
+  "at",
+  "be",
+  "by",
+  "can",
+  "does",
+  "for",
+  "from",
+  "gives",
+  "give",
+  "has",
+  "have",
+  "how",
+  "in",
+  "is",
+  "it",
+  "of",
+  "on",
+  "or",
+  "that",
+  "the",
+  "their",
+  "this",
+  "to",
+  "what",
+  "when",
+  "which",
+  "with",
 ]);
 
 const CONCEPT_SYNONYMS = new Map([
@@ -37,7 +65,10 @@ export function evaluateAnswer(userAnswer, expectedAnswer) {
     };
   }
 
-  if (typeof expectedAnswer !== "string" || expectedAnswer.trim().length === 0) {
+  if (
+    typeof expectedAnswer !== "string" ||
+    expectedAnswer.trim().length === 0
+  ) {
     return {
       correct: false,
       reason: "The expected answer is unavailable.",
@@ -54,7 +85,9 @@ export function evaluateAnswer(userAnswer, expectedAnswer) {
     };
   }
 
-  const matchingTokens = [...userTokens].filter((token) => expectedTokens.has(token));
+  const matchingTokens = [...userTokens].filter((token) =>
+    expectedTokens.has(token),
+  );
   const userCoverage = matchingTokens.length / userTokens.size;
   const expectedCoverage = matchingTokens.length / expectedTokens.size;
   const correct = userCoverage >= 0.6 && expectedCoverage >= 0.6;

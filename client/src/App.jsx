@@ -43,7 +43,6 @@ function App() {
       <Header />
 
       <main>
-
         {showLanding && <Hero />}
 
         <div className="prompt-section">
@@ -130,7 +129,6 @@ function App() {
             onNew={startNewSession}
           />
         )}
-
       </main>
 
       <footer>

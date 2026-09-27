@@ -6,8 +6,9 @@ const ai = new GoogleGenAI({
 });
 
 export async function generateStudySet(userInput, mode = "flashcards") {
-  const outputInstructions = mode === "quiz"
-    ? `Generate 3 to 10 multiple-choice questions.
+  const outputInstructions =
+    mode === "quiz"
+      ? `Generate 3 to 10 multiple-choice questions.
 
 The JSON MUST follow exactly this structure:
 
@@ -30,7 +31,7 @@ Rules:
 - Every question must have exactly 4 unique, non-empty options.
 - correctAnswer must exactly match one option.
 - Every explanation must be a string.`
-    : `Generate 3 to 10 useful flashcards.
+      : `Generate 3 to 10 useful flashcards.
 
 The JSON MUST follow exactly this structure:
 
@@ -68,35 +69,35 @@ ${outputInstructions}
 User input:
 ${userInput}
 `;
-const response = await ai.models.generateContent({
-  model: "gemini-3.5-flash-lite" ,
-  
-  contents: prompt,
-});
+  const response = await ai.models.generateContent({
+    model: "gemini-3.5-flash-lite",
 
-const rawText = response.text;
-// const rawText = "This is not valid JSON";
-// const rawText = JSON.stringify({
-//   title: "JavaScript",
-// });
+    contents: prompt,
+  });
 
-if (!rawText || rawText.trim().length === 0) {
-  throw new Error("Gemini returned an empty response.");
-}
+  const rawText = response.text;
+  // const rawText = "This is not valid JSON";
+  // const rawText = JSON.stringify({
+  //   title: "JavaScript",
+  // });
 
-let parsedData;
+  if (!rawText || rawText.trim().length === 0) {
+    throw new Error("Gemini returned an empty response.");
+  }
 
-try {
-  parsedData = JSON.parse(rawText);
-} catch (error) {
-  throw new Error("Gemini returned malformed JSON.");
-}
+  let parsedData;
 
-const validation = validateStudyResult(parsedData);
+  try {
+    parsedData = JSON.parse(rawText);
+  } catch (error) {
+    throw new Error("Gemini returned malformed JSON.");
+  }
 
-if (!validation.valid) {
-  throw new Error(validation.error);
-}
+  const validation = validateStudyResult(parsedData);
 
-return validation.data;
+  if (!validation.valid) {
+    throw new Error(validation.error);
+  }
+
+  return validation.data;
 }

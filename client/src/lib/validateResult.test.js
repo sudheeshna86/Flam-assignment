@@ -5,13 +5,15 @@ import { validateStudyResult } from "./validateResult.js";
 const validQuiz = {
   title: "JavaScript",
   mode: "quiz",
-  questions: [{
-    id: "q1",
-    question: "Which declarations exist?",
-    options: ["var", "let", "const", "function"],
-    correctAnswer: "var",
-    explanation: "var is one JavaScript declaration form.",
-  }],
+  questions: [
+    {
+      id: "q1",
+      question: "Which declarations exist?",
+      options: ["var", "let", "const", "function"],
+      correctAnswer: "var",
+      explanation: "var is one JavaScript declaration form.",
+    },
+  ],
 };
 
 describe("validateStudyResult quiz mode", () => {

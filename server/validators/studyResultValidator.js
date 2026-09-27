@@ -6,10 +6,7 @@ export function validateStudyResult(data) {
     };
   }
 
-  if (
-    typeof data.title !== "string" ||
-    data.title.trim().length === 0
-  ) {
+  if (typeof data.title !== "string" || data.title.trim().length === 0) {
     return {
       valid: false,
       error: "AI response contains an invalid title.",
@@ -22,35 +19,74 @@ export function validateStudyResult(data) {
 
   if (data.mode === "quiz") {
     if (!Array.isArray(data.questions) || data.questions.length === 0) {
-      return { valid: false, error: "AI quiz response must contain questions." };
+      return {
+        valid: false,
+        error: "AI quiz response must contain questions.",
+      };
     }
     const ids = new Set();
     for (const question of data.questions) {
-      if (!question || typeof question !== "object" || Array.isArray(question)) {
-        return { valid: false, error: "A quiz question has an invalid structure." };
+      if (
+        !question ||
+        typeof question !== "object" ||
+        Array.isArray(question)
+      ) {
+        return {
+          valid: false,
+          error: "A quiz question has an invalid structure.",
+        };
       }
-      if (typeof question.id !== "string" || question.id.trim().length === 0 || ids.has(question.id)) {
-        return { valid: false, error: "Every quiz question must have a unique ID." };
+      if (
+        typeof question.id !== "string" ||
+        question.id.trim().length === 0 ||
+        ids.has(question.id)
+      ) {
+        return {
+          valid: false,
+          error: "Every quiz question must have a unique ID.",
+        };
       }
       ids.add(question.id);
-      if (typeof question.question !== "string" || question.question.trim().length === 0) {
+      if (
+        typeof question.question !== "string" ||
+        question.question.trim().length === 0
+      ) {
         return { valid: false, error: "Every quiz question must have text." };
       }
       if (!Array.isArray(question.options) || question.options.length !== 4) {
-        return { valid: false, error: "Every quiz question must have exactly 4 options." };
+        return {
+          valid: false,
+          error: "Every quiz question must have exactly 4 options.",
+        };
       }
-      if (question.options.some((option) => typeof option !== "string" || option.trim().length === 0)) {
-        return { valid: false, error: "Quiz options must be non-empty strings." };
+      if (
+        question.options.some(
+          (option) => typeof option !== "string" || option.trim().length === 0,
+        )
+      ) {
+        return {
+          valid: false,
+          error: "Quiz options must be non-empty strings.",
+        };
       }
       const options = question.options.map((option) => option.trim());
       if (new Set(options.map((option) => option.toLowerCase())).size !== 4) {
         return { valid: false, error: "Quiz options must be unique." };
       }
-      if (typeof question.correctAnswer !== "string" || !options.includes(question.correctAnswer.trim())) {
-        return { valid: false, error: "The correct answer must match one option exactly." };
+      if (
+        typeof question.correctAnswer !== "string" ||
+        !options.includes(question.correctAnswer.trim())
+      ) {
+        return {
+          valid: false,
+          error: "The correct answer must match one option exactly.",
+        };
       }
       if (typeof question.explanation !== "string") {
-        return { valid: false, error: "Every quiz question must have an explanation." };
+        return {
+          valid: false,
+          error: "Every quiz question must have an explanation.",
+        };
       }
     }
     return { valid: true, data };
@@ -80,10 +116,7 @@ export function validateStudyResult(data) {
       };
     }
 
-    if (
-      typeof card.id !== "string" ||
-      card.id.trim().length === 0
-    ) {
+    if (typeof card.id !== "string" || card.id.trim().length === 0) {
       return {
         valid: false,
         error: "Every card must have a valid ID.",
@@ -109,10 +142,7 @@ export function validateStudyResult(data) {
       };
     }
 
-    if (
-      typeof card.answer !== "string" ||
-      card.answer.trim().length === 0
-    ) {
+    if (typeof card.answer !== "string" || card.answer.trim().length === 0) {
       return {
         valid: false,
         error: "Every card must have an answer.",

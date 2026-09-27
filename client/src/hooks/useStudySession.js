@@ -1,10 +1,4 @@
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { generateStudySet } from "../lib/api";
 import { validateStudyResult } from "../lib/validateResult";
@@ -46,16 +40,20 @@ export default function useStudySession() {
 
   const pendingRequests = useMemo(
     () => generationRequests.filter((request) => request.status === "loading"),
-    [generationRequests]
+    [generationRequests],
   );
   const errorRequest = useMemo(
-    () => [...generationRequests].reverse().find(
-      (request) => request.status === "error" && request.id !== dismissedErrorId
-    ),
-    [dismissedErrorId, generationRequests]
+    () =>
+      [...generationRequests]
+        .reverse()
+        .find(
+          (request) =>
+            request.status === "error" && request.id !== dismissedErrorId,
+        ),
+    [dismissedErrorId, generationRequests],
   );
   const activeRequest = generationRequests.find(
-    (request) => request.id === activeRequestId
+    (request) => request.id === activeRequestId,
   );
   const result = activeRequest?.result || null;
   const loading = pendingRequests.length > 0;
@@ -64,7 +62,8 @@ export default function useStudySession() {
   const cards = useMemo(() => {
     if (!result) return [];
     if (!Array.isArray(result.cards)) return [];
-    if (reviewMode) return result.cards.filter((card) => reviewCards.has(card.id));
+    if (reviewMode)
+      return result.cards.filter((card) => reviewCards.has(card.id));
     return result.cards;
   }, [result, reviewMode, reviewCards]);
   const currentCard = cards[currentCardIndex];
@@ -74,19 +73,25 @@ export default function useStudySession() {
     if (retestMode) return wrongQuestions;
     return result.questions;
   }, [result, retestMode, wrongQuestions]);
-  const quizCurrentCard = quizSubmitted && quizSubmittedCard
-    ? quizSubmittedCard
-    : quizCards[quizIndex];
+  const quizCurrentCard =
+    quizSubmitted && quizSubmittedCard
+      ? quizSubmittedCard
+      : quizCards[quizIndex];
   const canGoPrevious = currentCardIndex > 0;
   const canGoNext = currentCardIndex < cards.length - 1;
 
   useEffect(() => {
     if (pendingRequests.length === 0) return undefined;
     const timer = window.setInterval(() => {
-      setGenerationRequests((requests) => requests.map((request) => {
-        if (request.status !== "loading") return request;
-        return { ...request, messageIndex: (request.messageIndex + 1) % loadingMessages.length };
-      }));
+      setGenerationRequests((requests) =>
+        requests.map((request) => {
+          if (request.status !== "loading") return request;
+          return {
+            ...request,
+            messageIndex: (request.messageIndex + 1) % loadingMessages.length,
+          };
+        }),
+      );
     }, 1800);
     return () => window.clearInterval(timer);
   }, [pendingRequests.length]);
@@ -105,47 +110,68 @@ export default function useStudySession() {
     setRetestCorrectCount(0);
   }, []);
 
-  const generate = useCallback(async (input, mode = "flashcards") => {
-    const requestId = nextRequestIdRef.current++;
-    setDismissedErrorId(null);
-    setGenerationRequests((requests) => [...requests, {
-      id: requestId,
-      input,
-      mode,
-      status: "loading",
-      messageIndex: 0,
-    }]);
+  const generate = useCallback(
+    async (input, mode = "flashcards") => {
+      const requestId = nextRequestIdRef.current++;
+      setDismissedErrorId(null);
+      setGenerationRequests((requests) => [
+        ...requests,
+        {
+          id: requestId,
+          input,
+          mode,
+          status: "loading",
+          messageIndex: 0,
+        },
+      ]);
 
-    try {
-      const data = await generateStudySet(input, mode);
-      const validation = validateStudyResult(data);
-      if (!validation.valid) throw new Error(validation.error);
+      try {
+        const data = await generateStudySet(input, mode);
+        const validation = validateStudyResult(data);
+        if (!validation.valid) throw new Error(validation.error);
 
-      setGenerationRequests((requests) => requests.map((request) =>
-        request.id === requestId ? { ...request, status: "success", result: validation.data } : request
-      ));
+        setGenerationRequests((requests) =>
+          requests.map((request) =>
+            request.id === requestId
+              ? { ...request, status: "success", result: validation.data }
+              : request,
+          ),
+        );
 
-      if (activeRequestIdRef.current === null || requestId > activeRequestIdRef.current) {
-        activeRequestIdRef.current = requestId;
-        setActiveRequestId(requestId);
-        setSessionComplete(false);
-        setReviewMode(false);
-        setStudyMode(validation.data.mode);
-        setCurrentCardIndex(0);
-        setIsFlipped(false);
-        setMastered(new Set());
-        setReviewCards(new Set());
-        resetQuiz();
+        if (
+          activeRequestIdRef.current === null ||
+          requestId > activeRequestIdRef.current
+        ) {
+          activeRequestIdRef.current = requestId;
+          setActiveRequestId(requestId);
+          setSessionComplete(false);
+          setReviewMode(false);
+          setStudyMode(validation.data.mode);
+          setCurrentCardIndex(0);
+          setIsFlipped(false);
+          setMastered(new Set());
+          setReviewCards(new Set());
+          resetQuiz();
+        }
+      } catch (generationError) {
+        console.error("Generation failed:", generationError);
+        setGenerationRequests((requests) =>
+          requests.map((request) =>
+            request.id === requestId
+              ? {
+                  ...request,
+                  status: "error",
+                  error:
+                    generationError.message ||
+                    "Something went wrong. Please try again.",
+                }
+              : request,
+          ),
+        );
       }
-    } catch (generationError) {
-      console.error("Generation failed:", generationError);
-      setGenerationRequests((requests) => requests.map((request) =>
-        request.id === requestId
-          ? { ...request, status: "error", error: generationError.message || "Something went wrong. Please try again." }
-          : request
-      ));
-    }
-  }, [resetQuiz]);
+    },
+    [resetQuiz],
+  );
 
   const toggleFlip = useCallback(() => setIsFlipped((flipped) => !flipped), []);
   const nextCard = useCallback(() => {
@@ -171,7 +197,8 @@ export default function useStudySession() {
       return next;
     });
     if (reviewMode && cards.length > 1) {
-      if (currentCardIndex >= cards.length - 1) setCurrentCardIndex(cards.length - 2);
+      if (currentCardIndex >= cards.length - 1)
+        setCurrentCardIndex(cards.length - 2);
       setIsFlipped(false);
     } else finishOrMove();
   }, [cards.length, currentCard, currentCardIndex, finishOrMove, reviewMode]);
@@ -203,24 +230,33 @@ export default function useStudySession() {
     setIsFlipped(false);
   }, []);
 
-  const selectQuizAnswer = useCallback((option) => {
-    if (!quizCurrentCard || quizSubmitted) return;
-    const correct = option === quizCurrentCard.correctAnswer;
-    setQuizAnswer(option);
-    setQuizSubmitted(true);
-    setQuizSubmittedCard(quizCurrentCard);
-    setQuizLastAnswerCorrect(correct);
-    setQuizAnsweredCount((count) => count + 1);
-    if (correct) {
-      setQuizCorrectCount((count) => count + 1);
-      if (retestMode) {
-        setRetestCorrectCount((count) => count + 1);
-        setWrongQuestions((questions) => questions.filter((question) => question.id !== quizCurrentCard.id));
+  const selectQuizAnswer = useCallback(
+    (option) => {
+      if (!quizCurrentCard || quizSubmitted) return;
+      const correct = option === quizCurrentCard.correctAnswer;
+      setQuizAnswer(option);
+      setQuizSubmitted(true);
+      setQuizSubmittedCard(quizCurrentCard);
+      setQuizLastAnswerCorrect(correct);
+      setQuizAnsweredCount((count) => count + 1);
+      if (correct) {
+        setQuizCorrectCount((count) => count + 1);
+        if (retestMode) {
+          setRetestCorrectCount((count) => count + 1);
+          setWrongQuestions((questions) =>
+            questions.filter((question) => question.id !== quizCurrentCard.id),
+          );
+        }
+      } else {
+        setWrongQuestions((questions) =>
+          questions.some((question) => question.id === quizCurrentCard.id)
+            ? questions
+            : [...questions, quizCurrentCard],
+        );
       }
-    } else {
-      setWrongQuestions((questions) => questions.some((question) => question.id === quizCurrentCard.id) ? questions : [...questions, quizCurrentCard]);
-    }
-  }, [quizCurrentCard, quizSubmitted, retestMode]);
+    },
+    [quizCurrentCard, quizSubmitted, retestMode],
+  );
 
   const nextQuizQuestion = useCallback(() => {
     if (!quizCurrentCard) return;
@@ -241,7 +277,13 @@ export default function useStudySession() {
     setQuizSubmitted(false);
     setQuizSubmittedCard(null);
     setQuizLastAnswerCorrect(null);
-  }, [quizCards.length, quizCurrentCard, quizIndex, retestMode, wrongQuestions.length]);
+  }, [
+    quizCards.length,
+    quizCurrentCard,
+    quizIndex,
+    retestMode,
+    wrongQuestions.length,
+  ]);
 
   const startRetest = useCallback(() => {
     if (wrongQuestions.length === 0) return;
@@ -281,25 +323,76 @@ export default function useStudySession() {
 
   useEffect(() => {
     function handleKeyDown(event) {
-      if (studyMode !== "flashcards" || !result || loading || sessionComplete || event.target instanceof HTMLTextAreaElement || event.target instanceof HTMLInputElement) return;
-      if (event.code === "Space") { event.preventDefault(); toggleFlip(); }
+      if (
+        studyMode !== "flashcards" ||
+        !result ||
+        loading ||
+        sessionComplete ||
+        event.target instanceof HTMLTextAreaElement ||
+        event.target instanceof HTMLInputElement
+      )
+        return;
+      if (event.code === "Space") {
+        event.preventDefault();
+        toggleFlip();
+      }
       if (event.key === "ArrowLeft") previousCard();
       if (event.key === "ArrowRight") nextCard();
     }
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [loading, nextCard, previousCard, result, sessionComplete, studyMode, toggleFlip]);
+  }, [
+    loading,
+    nextCard,
+    previousCard,
+    result,
+    sessionComplete,
+    studyMode,
+    toggleFlip,
+  ]);
 
   return {
-    result, loading, error, pendingRequests,
-    cards, currentCard, currentCardIndex, isFlipped,
-    reviewMode, sessionComplete, canGoPrevious, canGoNext,
-    masteredCount: mastered.size, reviewCount: reviewCards.size,
-    studyMode, quizCards, quizCurrentCard, quizIndex, quizAnswer,
-    quizSubmitted, quizLastAnswerCorrect, quizAnsweredCount, quizCorrectCount,
-    wrongAnswerCount: wrongQuestions.length, quizComplete, retestMode, retestCorrectCount,
-    selectQuizAnswer, generate, retry, toggleFlip, nextCard, previousCard,
-    markMastered, markForReview, startReview, startQuiz, startFlashcards,
-    nextQuizQuestion, startRetest, startNewSession, dismissError,
+    result,
+    loading,
+    error,
+    pendingRequests,
+    cards,
+    currentCard,
+    currentCardIndex,
+    isFlipped,
+    reviewMode,
+    sessionComplete,
+    canGoPrevious,
+    canGoNext,
+    masteredCount: mastered.size,
+    reviewCount: reviewCards.size,
+    studyMode,
+    quizCards,
+    quizCurrentCard,
+    quizIndex,
+    quizAnswer,
+    quizSubmitted,
+    quizLastAnswerCorrect,
+    quizAnsweredCount,
+    quizCorrectCount,
+    wrongAnswerCount: wrongQuestions.length,
+    quizComplete,
+    retestMode,
+    retestCorrectCount,
+    selectQuizAnswer,
+    generate,
+    retry,
+    toggleFlip,
+    nextCard,
+    previousCard,
+    markMastered,
+    markForReview,
+    startReview,
+    startQuiz,
+    startFlashcards,
+    nextQuizQuestion,
+    startRetest,
+    startNewSession,
+    dismissError,
   };
 }

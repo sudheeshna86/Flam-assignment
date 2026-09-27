@@ -16,11 +16,9 @@ export async function generateController(req, res) {
         error: "Mode must be flashcards or quiz.",
       });
     }
-    const delay = input.toLowerCase().includes("javascript")
-  ? 5000
-  : 1000;
+    const delay = input.toLowerCase().includes("javascript") ? 5000 : 1000;
 
-await new Promise((resolve) => setTimeout(resolve, delay));
+    await new Promise((resolve) => setTimeout(resolve, delay));
     const result = await generateStudySet(input.trim(), mode);
 
     return res.status(200).json({
